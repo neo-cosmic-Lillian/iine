@@ -20,6 +20,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.WindowManager;
+import android.webkit.GeolocationPermissions.Callback;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings.LayoutAlgorithm;
 import android.webkit.WebView;
@@ -43,7 +44,7 @@ public class MainActivity extends Activity implements OnClickListener {
 	private AdView adView;
 	private boolean needCleanHistory = false;
 	private static String[] urls = Preference.Urls;
-//	private Map<String, String> headers;
+	// private Map<String, String> headers;
 	private String param = "";
 
 	@Override
@@ -80,10 +81,22 @@ public class MainActivity extends Activity implements OnClickListener {
 				mProgress.setProgress(progress);
 				mProgress.setMessage(progress + "%");
 			}
+			
+			public void onGeolocationPermissionsShowPrompt(String origin,
+					Callback callback) {
+				// TODO Auto-generated method stub
+				callback.invoke(origin, true, true);
+			}
 		});
+
+		mWebView.getSettings().setGeolocationDatabasePath("/data/data/jp.upset.horoscope");
 		mWebView.getSettings().setJavaScriptEnabled(true);
+		mWebView.getSettings().setGeolocationEnabled(true);
+		mWebView.getSettings().setJavaScriptCanOpenWindowsAutomatically(true);
 		mWebView.getSettings().setSavePassword(false);
+		mWebView.getSettings().setAppCacheEnabled(true);
 		mWebView.getSettings().setDatabaseEnabled(false);
+		mWebView.getSettings().setDomStorageEnabled(true);
 		mWebView.getSettings().setSupportZoom(false);
 		mWebView.setWebViewClient(mClient);
 		mWebView.getSettings()
@@ -105,13 +118,11 @@ public class MainActivity extends Activity implements OnClickListener {
 					.create().show();
 		}
 
-		
-//		headers = new HashMap<String, String>();
-//		headers.put("Authorization",
-//				Preference.getUuid(this));
+		// headers = new HashMap<String, String>();
+		// headers.put("Authorization",
+		// Preference.getUuid(this));
 		param = "?" + "Authorization=" + Preference.getUuid(this);
 		loadUrl(urls[0]);
-		
 
 		mTab3.setCount(Preference.getMessageCount(this));
 
@@ -131,16 +142,16 @@ public class MainActivity extends Activity implements OnClickListener {
 			GCMRegistrar.register(this, "682751756494");
 		} else {
 			registerPush(regId);
-			Log.i("aa",regId);
+			Log.i("aa", regId);
 		}
 	}
-	
-	private void registerPush(String regId){
+
+	private void registerPush(String regId) {
 		AsyncHttpClient mHttpClient = new AsyncHttpClient();
 		RequestParams param = new RequestParams();
 		param.put("device_id", Preference.getUuid(this));
 		param.put("registration_ids", regId);
-		mHttpClient.post(urls[4],param, new AsyncHttpResponseHandler(){
+		mHttpClient.post(urls[4], param, new AsyncHttpResponseHandler() {
 
 			@Override
 			public void onFailure(Throwable arg0, String arg1) {
@@ -152,9 +163,9 @@ public class MainActivity extends Activity implements OnClickListener {
 			public void onSuccess(String arg0) {
 				// TODO Auto-generated method stub
 				super.onSuccess(arg0);
-				Log.i("aa",arg0);
+				Log.i("aa", arg0);
 			}
-			
+
 		});
 	}
 
@@ -241,7 +252,6 @@ public class MainActivity extends Activity implements OnClickListener {
 	}
 
 	private WebViewClient mClient = new WebViewClient() {
-		
 
 		@Override
 		public void doUpdateVisitedHistory(WebView view, String url,
@@ -275,8 +285,6 @@ public class MainActivity extends Activity implements OnClickListener {
 				needCleanHistory = false;
 			}
 		}
-		
-		
 
 	};
 
@@ -300,17 +308,17 @@ public class MainActivity extends Activity implements OnClickListener {
 			// TODO Auto-generated method stub
 			Log.i("aa", "onReceive " + intent.getAction());
 			String action = intent.getAction();
-			if(action.equals(MSG_ACTION)){
+			if (action.equals(MSG_ACTION)) {
 				int msg_count = intent.getIntExtra("msg_count", 0);
 				mTab3.setCount(msg_count);
 				mTab3.invalidate();
-			}else{
+			} else {
 				String reg_id = intent.getStringExtra("reg_id");
-				if(!reg_id.equals("")){
+				if (!reg_id.equals("")) {
 					registerPush(reg_id);
 				}
 			}
-			
+
 		}
 
 	};
