@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">いいね</string>
+    <string name="confirm_to_exit">アプリを閉じますか？ネットワーク繋がらないですネットワーク繋がらないです</string>
+    <string name="confirm">はい</string>
+    <string name="cancel">いいえ</string>
+    <string name="no_network_connection">ネットワーク繋がらないですが、閉じますか？</string>
+    
+
+</resources>
