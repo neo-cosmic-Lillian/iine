@@ -1,10 +1,8 @@
 package jp.upset.horoscope;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.PendingIntent;
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -12,6 +10,9 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Bitmap;
+import android.location.Criteria;
+import android.location.Location;
+import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
@@ -37,6 +38,7 @@ public class MainActivity extends Activity implements OnClickListener {
 
 	private final static String MSG_ACTION = "msg_count";
 	private final static String PUSH_ACTION = "registerPush";
+	private final static String LOCATION_UPDATE = "location_update";
 
 	private TabView mTab1, mTab2, mTab3, mTab4;
 	private WebView mWebView;
@@ -46,6 +48,7 @@ public class MainActivity extends Activity implements OnClickListener {
 	private static String[] urls = Preference.Urls;
 	// private Map<String, String> headers;
 	private String param = "";
+	private LocationManager mLocationManager;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -53,6 +56,7 @@ public class MainActivity extends Activity implements OnClickListener {
 		setContentView(R.layout.activity_main);
 
 		initGCM();
+		mLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
 		LinearLayout layout = (LinearLayout) this
 				.findViewById(R.id.linearLayout1);
@@ -81,7 +85,7 @@ public class MainActivity extends Activity implements OnClickListener {
 				mProgress.setProgress(progress);
 				mProgress.setMessage(progress + "%");
 			}
-			
+
 			public void onGeolocationPermissionsShowPrompt(String origin,
 					Callback callback) {
 				// TODO Auto-generated method stub
@@ -89,7 +93,8 @@ public class MainActivity extends Activity implements OnClickListener {
 			}
 		});
 
-		mWebView.getSettings().setGeolocationDatabasePath("/data/data/jp.upset.horoscope");
+		mWebView.getSettings().setGeolocationDatabasePath(
+				"/data/data/jp.upset.horoscope");
 		mWebView.getSettings().setJavaScriptEnabled(true);
 		mWebView.getSettings().setGeolocationEnabled(true);
 		mWebView.getSettings().setJavaScriptCanOpenWindowsAutomatically(true);
@@ -123,12 +128,13 @@ public class MainActivity extends Activity implements OnClickListener {
 		// Preference.getUuid(this));
 		param = "?" + "Authorization=" + Preference.getUuid(this);
 		loadUrl(urls[0]);
-
+		// loadUrl("http://www.google.com");
 		mTab3.setCount(Preference.getMessageCount(this));
 
 		IntentFilter filter = new IntentFilter();
 		filter.addAction(MSG_ACTION);
 		filter.addAction(PUSH_ACTION);
+		filter.addAction(LOCATION_UPDATE);
 		this.registerReceiver(MessageReceiver, filter);
 
 	}
@@ -248,6 +254,20 @@ public class MainActivity extends Activity implements OnClickListener {
 	}
 
 	private void loadUrl(String url) {
+		if (url.equals(urls[0])) {
+			Intent i = new Intent();
+			i.setAction(LOCATION_UPDATE);
+			PendingIntent pi = PendingIntent.getBroadcast(this, 0, i, 0);
+			Criteria criteria = new Criteria();
+			criteria.setAccuracy(Criteria.ACCURACY_COARSE);
+			criteria.setPowerRequirement(Criteria.POWER_LOW);
+			criteria.setAltitudeRequired(false);
+			criteria.setBearingRequired(false);
+			criteria.setSpeedRequired(false);
+			criteria.setCostAllowed(false);
+			mLocationManager.requestSingleUpdate(
+					criteria, pi);
+		}
 		mWebView.loadUrl(url + param);
 	}
 
@@ -312,11 +332,44 @@ public class MainActivity extends Activity implements OnClickListener {
 				int msg_count = intent.getIntExtra("msg_count", 0);
 				mTab3.setCount(msg_count);
 				mTab3.invalidate();
-			} else {
+			} else if (action.endsWith(PUSH_ACTION)) {
 				String reg_id = intent.getStringExtra("reg_id");
 				if (!reg_id.equals("")) {
 					registerPush(reg_id);
 				}
+			} else {
+				Log.i("aa", intent.toString());
+				if (intent.hasExtra(LocationManager.KEY_LOCATION_CHANGED)) {
+					Bundle b = intent.getExtras();
+					Location l = (Location) b
+							.get(LocationManager.KEY_LOCATION_CHANGED);
+					double lat = l.getLatitude();
+					double lng = l.getLongitude();
+					
+					AsyncHttpClient mHttpClient = new AsyncHttpClient();
+					RequestParams param = new RequestParams();
+					param.put("lat", Double.toString(lat));
+					param.put("lng", Double.toString(lng));
+					param.put("mac", Preference.getUuid(MainActivity.this));
+					
+					mHttpClient.post(urls[5], param, new AsyncHttpResponseHandler() {
+
+						@Override
+						public void onFailure(Throwable arg0, String arg1) {
+							// TODO Auto-generated method stub
+							super.onFailure(arg0, arg1);
+						}
+
+						@Override
+						public void onSuccess(String arg0) {
+							// TODO Auto-generated method stub
+							super.onSuccess(arg0);
+							Log.i("aa", arg0);
+						}
+
+					});
+				}
+
 			}
 
 		}

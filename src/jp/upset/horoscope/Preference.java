@@ -14,7 +14,8 @@ public class Preference {
 			"http://senzaki.neocosmic.info/iinekko/index.php/Results/distance",
 			"http://senzaki.neocosmic.info/iinekko/index.php/Comments/news",
 			"http://senzaki.neocosmic.info/iinekko/index.php/Informations/index",
-			"http://senzaki.neocosmic.info/iinekko/index.php/Publics/userSession" };
+			"http://senzaki.neocosmic.info/iinekko/index.php/Publics/userSession",
+			"http://senzaki.neocosmic.info/iinekko/index.php/Diagnosiss/interface_pos"};
 	
 	public static String getUuid(Context context){
 		return Secure.getString(context.getContentResolver(), Secure.ANDROID_ID);
