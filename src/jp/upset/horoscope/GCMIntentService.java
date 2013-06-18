@@ -33,9 +33,9 @@ public class GCMIntentService extends GCMBaseIntentService {
 			if(type ==1){
 				String msg = intent.getStringExtra("msg");
 				Intent i = new Intent(context, MainActivity.class);
-				i.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
+				i.putExtra("tab", 2);
 				PendingIntent pi = PendingIntent.getActivity(context, 0, i,
-						Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+						Intent.FLAG_ACTIVITY_CLEAR_TOP);
 				Notification noti = new NotificationCompat.Builder(context)
 						.setContentTitle(context.getString(R.string.app_name)).setContentText(msg).setTicker(msg)
 						.setSmallIcon(R.drawable.ic_launcher).setContentIntent(pi)

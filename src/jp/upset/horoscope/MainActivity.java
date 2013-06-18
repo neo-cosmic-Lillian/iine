@@ -40,7 +40,7 @@ public class MainActivity extends Activity implements OnClickListener {
 	private final static String PUSH_ACTION = "registerPush";
 	private final static String LOCATION_UPDATE = "location_update";
 
-	private TabView mTab1, mTab2, mTab3, mTab4;
+	private TabView[] mTabs;
 	private WebView mWebView;
 	private ProgressDialog mProgress;
 	private AdView adView;
@@ -62,20 +62,20 @@ public class MainActivity extends Activity implements OnClickListener {
 				.findViewById(R.id.linearLayout1);
 		layout.getLayoutParams().height = getDisplayWidth() / 5;
 
-		mTab1 = (TabView) this.findViewById(R.id.tab1);
-		mTab2 = (TabView) this.findViewById(R.id.tab2);
-		mTab3 = (TabView) this.findViewById(R.id.tab3);
-		mTab4 = (TabView) this.findViewById(R.id.tab4);
+		mTabs = new TabView[4];
+		mTabs[0] = (TabView) this.findViewById(R.id.tab1);
+		mTabs[1] = (TabView) this.findViewById(R.id.tab2);
+		mTabs[2] = (TabView) this.findViewById(R.id.tab3);
+		mTabs[3] = (TabView) this.findViewById(R.id.tab4);
 		mWebView = (WebView) this.findViewById(R.id.webView1);
 		mProgress = new ProgressDialog(this);
 		mProgress.setMax(100);
 
-		mTab1.setSelected(true);
 
-		mTab1.setOnClickListener(this);
-		mTab2.setOnClickListener(this);
-		mTab3.setOnClickListener(this);
-		mTab4.setOnClickListener(this);
+		mTabs[0].setOnClickListener(this);
+		mTabs[1].setOnClickListener(this);
+		mTabs[2].setOnClickListener(this);
+		mTabs[3].setOnClickListener(this);
 
 		adView = (AdView) this.findViewById(R.id.adView);
 
@@ -127,9 +127,13 @@ public class MainActivity extends Activity implements OnClickListener {
 		// headers.put("Authorization",
 		// Preference.getUuid(this));
 		param = "?" + "Authorization=" + Preference.getUuid(this);
-		loadUrl(urls[0]);
+		
+		int tab = getIntent().getIntExtra("tab", 0);
+		
+		loadUrl(urls[tab]);
+		mTabs[tab].setSelected(true);
 		// loadUrl("http://www.google.com");
-		mTab3.setCount(Preference.getMessageCount(this));
+		mTabs[2].setCount(Preference.getMessageCount(this));
 
 		IntentFilter filter = new IntentFilter();
 		filter.addAction(MSG_ACTION);
@@ -227,10 +231,10 @@ public class MainActivity extends Activity implements OnClickListener {
 	@Override
 	public void onClick(View v) {
 		// TODO Auto-generated method stub
-		mTab1.setSelected(v.getId() == R.id.tab1);
-		mTab2.setSelected(v.getId() == R.id.tab2);
-		mTab3.setSelected(v.getId() == R.id.tab3);
-		mTab4.setSelected(v.getId() == R.id.tab4);
+		mTabs[0].setSelected(v.getId() == R.id.tab1);
+		mTabs[1].setSelected(v.getId() == R.id.tab2);
+		mTabs[2].setSelected(v.getId() == R.id.tab3);
+		mTabs[3].setSelected(v.getId() == R.id.tab4);
 		switch (v.getId()) {
 		case R.id.tab1:
 			loadUrl(urls[0]);
@@ -330,8 +334,8 @@ public class MainActivity extends Activity implements OnClickListener {
 			String action = intent.getAction();
 			if (action.equals(MSG_ACTION)) {
 				int msg_count = intent.getIntExtra("msg_count", 0);
-				mTab3.setCount(msg_count);
-				mTab3.invalidate();
+				mTabs[2].setCount(msg_count);
+				mTabs[2].invalidate();
 			} else if (action.endsWith(PUSH_ACTION)) {
 				String reg_id = intent.getStringExtra("reg_id");
 				if (!reg_id.equals("")) {
